@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Search, X, Loader2 } from 'lucide-react';
 import { API_KEY, BASE_URL } from './apiConfig';
 
@@ -9,27 +9,37 @@ export default function App() {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [detail, setDetail] = useState(null);
 
-  // --- FUNGSI SEARCH API ---
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!query) return;
+  // --- AUTO-LOAD: Panggil saat pertama kali aplikasi dibuka ---
+  useEffect(() => {
+    fetchMovies("drama"); // Otomatis cari 'drama' saat pertama loading
+  }, []); 
+
+  // --- FUNGSI UTAMA FETCHING ---
+  const fetchMovies = async (searchQuery) => {
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/starshort/api/v1/search?q=${query}`, {
+      const res = await fetch(`${BASE_URL}/starshort/api/v1/search?q=${searchQuery}`, {
         headers: { 'Authorization': `Bearer ${API_KEY}` }
       });
       const data = await res.json();
       setMovies(data);
-      setLoading(false);
     } catch (e) {
       console.error(e);
+    } finally {
       setLoading(false);
     }
   };
 
-  // --- FUNGSI DRAMA API (Detail) ---
+  // --- HANDLER FORM (Pas tombol cari diklik) ---
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!query) return;
+    fetchMovies(query);
+  };
+
+  // --- FUNGSI DETAIL ---
   const fetchDetail = async (id) => {
-    setDetail(null); // Reset detail sebelumnya
+    setDetail(null);
     try {
       const res = await fetch(`${BASE_URL}/starshort/api/v1/detail/${id}`, {
         headers: { 'Authorization': `Bearer ${API_KEY}` }
